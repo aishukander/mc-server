@@ -1,7 +1,7 @@
 # [mc-server](https://hub.docker.com/r/aishukander/mc-server)
 
 ## 說明
-基於debian製作的minecraft server，java跟伺服器檔都是啟動後從網路上自動下載的，所以映像檔較小。 <br>
+基於debian製作的minecraft server，java和伺服器檔會在啟動後從網路下載，以減少映像檔的大小。 <br>
 所有跟伺服器有關的檔案都在容器的 /project/server 目錄下。 <br>
 
 ## 支援度
