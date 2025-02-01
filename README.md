@@ -1,4 +1,4 @@
-# [mc-server](https://hub.docker.com/repository/docker/aishukander/mc-server/general)
+# [mc-server](https://hub.docker.com/r/aishukander/mc-server)
 
 ## 說明
 基於debian製作的minecraft server，java跟伺服器檔都是啟動後從網路上自動下載的，所以映像檔較小。 <br>
