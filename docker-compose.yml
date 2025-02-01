@@ -1,0 +1,17 @@
+services:
+  mc-server:
+    container_name: mc-server
+    tty: true
+    stdin_open: true
+    image: aishukander/mc-server
+    restart: on-failure
+    environment:
+      #JAVA_VERSION_OVERRIDE: "<version>"
+      Type: "paper"
+      MINECRAFT_VERSION: "1.21.4"
+      Min_Ram: "1G"
+      Max_Ram: "4G"
+    volumes:
+      - /home/aishukander/Downloads/server:/project/server
+    ports:
+      - "25565:25565"
