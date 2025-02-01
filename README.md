@@ -11,7 +11,7 @@
 * [NeoForge](https://projects.neoforged.net/neoforged/neoforge) 可選的所有neoforge版本
 
 ## 伺服器後台
-在宿主機使用```docker attach alpine-mcs```進入伺服器後台，按下 Ctrl+P+Q 退出後台。 <br>
+在宿主機使用```docker attach mc-server```進入伺服器後台，按下 Ctrl+P+Q 退出後台。 <br>
 
 ## 啟動
 Docker compose <br>
