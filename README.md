@@ -26,7 +26,7 @@ services:
     restart: on-failure
     environment:
       #JAVA_VERSION_OVERRIDE: "<version>"
-      Type: "<paper/neoforge>"
+      Type: "<paper/neoforge/fabric>"
       MINECRAFT_VERSION: "<minecraft_version>"
       Min_Ram: "<min_ram>"
       Max_Ram: "<max_ram>"
