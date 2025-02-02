@@ -22,7 +22,7 @@ services:
     tty: true
     stdin_open: true
     image: aishukander/mc-server
-    restart: unless-stopped
+    restart: on-failure
     environment:
       #JAVA_VERSION_OVERRIDE: "<version>"
       Type: "<paper/neoforge>"
