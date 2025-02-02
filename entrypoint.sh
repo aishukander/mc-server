@@ -94,10 +94,10 @@ if [ "$Type" != "paper" ] && [ "$Type" != "neoforge" ]; then
     jar_name="${Type}-${MINECRAFT_VERSION}.jar"
     if [ ! -f "$jar_name" ]; then
         download_url="https://mcutils.com/api/server-jars/${Type}/${MINECRAFT_VERSION}/download"
-        wget -O "$jar_name" "$download_url" || {
+        if ! wget -q -O "$jar_name" "$download_url"; then
             echo "Unsupported versions of Minecraft"
-            exit 1
-        }
+            exit 0
+        fi
     fi
     # Run server
     java -Xms${Min_Ram} -Xmx${Max_Ram} -jar "$jar_name" nogui
