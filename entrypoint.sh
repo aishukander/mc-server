@@ -26,7 +26,7 @@ fi
 export PATH=/project/java/jdk${JAVA_VERSION}/bin:$PATH
 
 # Install java
-if ! java -version 2>&1 | grep -q "openjdk version \"${JAVA_VERSION}"; then
+if [ ! -d "/project/java/${JAVA_VERSION}"]; then
     echo "start install java ${JAVA_VERSION}"
     LATEST_URL=$(curl -s "https://api.github.com/repos/adoptium/temurin${JAVA_VERSION}-binaries/releases/latest" \
         | grep "browser_download_url" \
@@ -35,6 +35,7 @@ if ! java -version 2>&1 | grep -q "openjdk version \"${JAVA_VERSION}"; then
         | cut -d '"' -f 4)
     curl -L "${LATEST_URL}" -o jdk${JAVA_VERSION}.tar.gz
     tar -xzf jdk${JAVA_VERSION}.tar.gz
+    rm jdk${JAVA_VERSION}.tar.gz
 
     jdk_dir=$(tar -tf jdk${JAVA_VERSION}.tar.gz | head -1 | cut -f1 -d"/")
     mkdir -p /project/java
