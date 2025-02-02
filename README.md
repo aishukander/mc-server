@@ -2,7 +2,8 @@
 
 ## 說明
 基於debian製作的minecraft server，java和伺服器檔會在啟動後從網路下載，以減少映像檔的大小。 <br>
-所有跟伺服器有關的檔案都在容器的 /project/server 目錄下。 <br>
+跟伺服器有關的檔案都在容器的 /project/server 目錄下。 <br>
+跟java有關的檔案都在容器的 /project/java 目錄下。 <br>
 
 ## 支援度
 如果遇到java版本不符的問題可以通過在compose的環境變數增加JAVA_VERSION_OVERRIDE來更改java版本。 <br>
