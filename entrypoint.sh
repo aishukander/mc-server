@@ -1,5 +1,4 @@
 #!/bin/bash
-cd /project/server
 
 # Detect the required java version
 if [ -n "$JAVA_VERSION_OVERRIDE" ]; then
@@ -24,7 +23,7 @@ else
     fi
 fi
 
-export PATH=/usr/local/java/jdk${JAVA_VERSION}/bin:$PATH
+export PATH=/project/java/jdk${JAVA_VERSION}/bin:$PATH
 
 # Install java
 if ! java -version 2>&1 | grep -q "openjdk version \"${JAVA_VERSION}"; then
@@ -38,11 +37,12 @@ if ! java -version 2>&1 | grep -q "openjdk version \"${JAVA_VERSION}"; then
     tar -xzf jdk${JAVA_VERSION}.tar.gz
 
     jdk_dir=$(tar -tf jdk${JAVA_VERSION}.tar.gz | head -1 | cut -f1 -d"/")
-    echo "Creating /usr/local/java directory"
-    mkdir -p /usr/local/java
-    echo "Moving ${jdk_dir} to /usr/local/java"
-    mv "${jdk_dir}" /usr/local/java/jdk${JAVA_VERSION}
+    mkdir -p /project/java
+    echo "Moving ${jdk_dir} to /project/java"
+    mv "${jdk_dir}" /project/java/jdk${JAVA_VERSION}
 fi
+
+cd /project/server
 
 # Create eula.txt
 if [ ! -f "eula.txt" ]; then
