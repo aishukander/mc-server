@@ -10,6 +10,7 @@
 支援的java版本可到連接查詢[releases](https://adoptium.net/temurin/releases/)
 * [Paper](https://papermc.io/downloads/all) 列表中所有paper版本
 * [NeoForge](https://projects.neoforged.net/neoforged/neoforge) 可選的所有neoforge版本
+* [Other](https://mcutils.com/server-jars) Paper跟NeoForge以外都是基於mcutils，具體支援類型可到連結內查看。
 
 ## 伺服器後台
 在宿主機使用```docker attach mc-server```進入伺服器後台，按下 Ctrl+P+Q 退出後台。 <br>
@@ -26,7 +27,7 @@ services:
     restart: on-failure
     environment:
       #JAVA_VERSION_OVERRIDE: "<version>"
-      Type: "<paper/neoforge/fabric>"
+      Type: "<paper/neoforge/other>"
       MINECRAFT_VERSION: "<minecraft_version>"
       Min_Ram: "<min_ram>"
       Max_Ram: "<max_ram>"

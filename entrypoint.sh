@@ -89,15 +89,16 @@ if [ "$Type" = "neoforge" ]; then
     ./run.sh
 fi
 
-# fabric
-if [ "$Type" = "fabric" ]; then
-    if [ ! -f "fabric-${MINECRAFT_VERSION}.jar" ]; then
-        download_url="https://mcutils.com/api/server-jars/fabric/${MINECRAFT_VERSION}/download"
-        wget -O "fabric-${MINECRAFT_VERSION}.jar" "$download_url" || {
+# mcutils
+if [ "$Type" != "paper" ] && [ "$Type" != "neoforge" ]; then
+    jar_name="${Type}-${MINECRAFT_VERSION}.jar"
+    if [ ! -f "$jar_name" ]; then
+        download_url="https://mcutils.com/api/server-jars/${Type}/${MINECRAFT_VERSION}/download"
+        wget -O "$jar_name" "$download_url" || {
             echo "Unsupported versions of Minecraft"
-            exit 0
+            exit 1
         }
     fi
     # Run server
-    java -Xms${Min_Ram} -Xmx${Max_Ram} -jar "fabric-${MINECRAFT_VERSION}.jar" nogui
+    java -Xms${Min_Ram} -Xmx${Max_Ram} -jar "$jar_name" nogui
 fi
