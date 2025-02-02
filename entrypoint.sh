@@ -72,9 +72,10 @@ if [ "$Type" = "neoforge" ]; then
     echo "-Xms${Min_Ram} -Xmx${Max_Ram}" > user_jvm_args.txt
 
     if [ ! -f "run.sh" ]; then
+        version_filter="${MINECRAFT_VERSION#1.}"
         api_url="https://maven.neoforged.net/releases/net/neoforged/neoforge"
-        latest_version=$(curl -s "$api_url/maven-metadata.xml" | xmllint --xpath "string(//metadata/versioning/versions/version[last()])" -)
-    
+        latest_version=$(curl -s "$api_url/maven-metadata.xml" | xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
+
         curl -o "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$latest_version/neoforge-$latest_version-installer.jar"
         java -jar "neoforge-${MINECRAFT_VERSION}.jar"
         rm "neoforge-${MINECRAFT_VERSION}.jar"
