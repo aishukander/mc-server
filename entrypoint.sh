@@ -57,6 +57,10 @@ if [ "$Type" = "paper" ]; then
     if [ ! -f "paper-${MINECRAFT_VERSION}.jar" ]; then
         api_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds"
         latest_build=$(curl -s "$api_url" | jq '.builds[-1].build')
+        if [ "$latest_build" = "null" ] || [ -z "$latest_build" ]; then
+            echo "Unsupported versions of Minecraft"
+            exit 0
+        fi
         download_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds/${latest_build}/downloads/paper-${MINECRAFT_VERSION}-${latest_build}.jar"
         curl -o "paper-${MINECRAFT_VERSION}.jar" "$download_url"
     fi
@@ -73,6 +77,10 @@ if [ "$Type" = "neoforge" ]; then
         version_filter="${MINECRAFT_VERSION#1.}"
         api_url="https://maven.neoforged.net/releases/net/neoforged/neoforge"
         latest_version=$(curl -s "$api_url/maven-metadata.xml" | xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
+        if [ -z "$latest_version" ]; then
+            echo "Unsupported versions of Minecraft"
+            exit 0
+        fi
         curl -o "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$latest_version/neoforge-$latest_version-installer.jar"
         java -jar "neoforge-${MINECRAFT_VERSION}.jar"
         rm "neoforge-${MINECRAFT_VERSION}.jar"
