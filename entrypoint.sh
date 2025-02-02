@@ -23,17 +23,15 @@ else
     fi
 fi
 
-export PATH=/project/java/jdk${JAVA_VERSION}/bin:$PATH
-
 # Install java
 if [ ! -d "/project/java/jdk${JAVA_VERSION}" ]; then
     echo "start install java ${JAVA_VERSION}"
-    LATEST_URL=$(curl -s "https://api.github.com/repos/adoptium/temurin${JAVA_VERSION}-binaries/releases/latest" \
+    LATEST_URL=$(wget -qO- "https://api.github.com/repos/adoptium/temurin${JAVA_VERSION}-binaries/releases/latest" \
         | grep "browser_download_url" \
         | grep "jdk_x64_linux" \
         | head -n 1 \
         | cut -d '"' -f 4)
-    curl -L "${LATEST_URL}" -o jdk${JAVA_VERSION}.tar.gz
+    wget -O jdk${JAVA_VERSION}.tar.gz "${LATEST_URL}"
     tar -xzf jdk${JAVA_VERSION}.tar.gz
 
     jdk_dir=$(tar -tf jdk${JAVA_VERSION}.tar.gz | head -1 | cut -f1 -d"/")
@@ -42,6 +40,8 @@ if [ ! -d "/project/java/jdk${JAVA_VERSION}" ]; then
     mv "${jdk_dir}" /project/java/jdk${JAVA_VERSION}
     rm jdk${JAVA_VERSION}.tar.gz
 fi
+
+export PATH=/project/java/jdk${JAVA_VERSION}/bin:$PATH
 
 cd /project/server
 
@@ -56,13 +56,13 @@ fi
 if [ "$Type" = "paper" ]; then
     if [ ! -f "paper-${MINECRAFT_VERSION}.jar" ]; then
         api_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds"
-        latest_build=$(curl -s "$api_url" | jq '.builds[-1].build')
+        latest_build=$(wget -qO- "$api_url" | jq '.builds[-1].build')
         if [ "$latest_build" = "null" ] || [ -z "$latest_build" ]; then
             echo "Unsupported versions of Minecraft"
             exit 0
         fi
         download_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds/${latest_build}/downloads/paper-${MINECRAFT_VERSION}-${latest_build}.jar"
-        curl -o "paper-${MINECRAFT_VERSION}.jar" "$download_url"
+        wget -O "paper-${MINECRAFT_VERSION}.jar" "$download_url"
     fi
 
     # Run server
@@ -76,15 +76,28 @@ if [ "$Type" = "neoforge" ]; then
     if [ ! -f "run.sh" ]; then
         version_filter="${MINECRAFT_VERSION#1.}"
         api_url="https://maven.neoforged.net/releases/net/neoforged/neoforge"
-        latest_version=$(curl -s "$api_url/maven-metadata.xml" | xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
+        latest_version=$(wget -qO- "$api_url/maven-metadata.xml" | xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
         if [ -z "$latest_version" ]; then
             echo "Unsupported versions of Minecraft"
             exit 0
         fi
-        curl -o "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$latest_version/neoforge-$latest_version-installer.jar"
+        wget -O "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$latest_version/neoforge-$latest_version-installer.jar"
         java -jar "neoforge-${MINECRAFT_VERSION}.jar"
         rm "neoforge-${MINECRAFT_VERSION}.jar"
     fi
 
     ./run.sh
+fi
+
+# fabric
+if [ "$Type" = "fabric" ]; then
+    if [ ! -f "fabric-${MINECRAFT_VERSION}.jar" ]; then
+        download_url="https://mcutils.com/api/server-jars/fabric/${MINECRAFT_VERSION}/download"
+        wget -O "fabric-${MINECRAFT_VERSION}.jar" "$download_url" || {
+            echo "Unsupported versions of Minecraft"
+            exit 0
+        }
+    fi
+    # Run server
+    java -Xms${Min_Ram} -Xmx${Max_Ram} -jar "fabric-${MINECRAFT_VERSION}.jar" nogui
 fi
