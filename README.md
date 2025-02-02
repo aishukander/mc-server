@@ -7,6 +7,7 @@
 
 ## 支援度
 如果遇到java版本不符的問題可以通過在compose的環境變數增加JAVA_VERSION_OVERRIDE來更改java版本。 <br>
+如果想自訂neoforge版本可以通過在compose的環境變數增加NEO_VERSION_OVERRIDE來更改neoforge版本。 <br>
 支援的java版本可到連接查詢[releases](https://adoptium.net/temurin/releases/)
 * [Paper](https://papermc.io/downloads/all) 列表中所有paper版本
 * [NeoForge](https://projects.neoforged.net/neoforged/neoforge) 可選的所有neoforge版本
@@ -26,7 +27,8 @@ services:
     image: aishukander/mc-server
     restart: on-failure
     environment:
-      #JAVA_VERSION_OVERRIDE: "<version>"
+      # JAVA_VERSION_OVERRIDE: "<version>"
+      # NEO_VERSION_OVERRIDE: "<version>"
       Type: "<paper/neoforge/other>"
       MINECRAFT_VERSION: "<minecraft_version>"
       Min_Ram: "<min_ram>"

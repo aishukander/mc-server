@@ -76,12 +76,18 @@ if [ "$Type" = "neoforge" ]; then
     if [ ! -f "run.sh" ]; then
         version_filter="${MINECRAFT_VERSION#1.}"
         api_url="https://maven.neoforged.net/releases/net/neoforged/neoforge"
-        latest_version=$(wget -qO- "$api_url/maven-metadata.xml" | xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
-        if [ -z "$latest_version" ]; then
-            echo "Unsupported versions of Minecraft"
-            exit 0
+        if [ -n "$NEO_VERSION_OVERRIDE" ]; then
+            neo_version="$NEO_VERSION_OVERRIDE"
+        else
+            neo_version=$(wget -qO- "$api_url/maven-metadata.xml" | \
+                xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
+            if [ -z "$neo_version" ]; then
+                echo "Unsupported versions of Minecraft"
+                exit 0
+            fi
         fi
-        wget -O "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$latest_version/neoforge-$latest_version-installer.jar"
+
+        wget -O "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$neo_version/neoforge-$neo_version-installer.jar"
         java -jar "neoforge-${MINECRAFT_VERSION}.jar"
         rm "neoforge-${MINECRAFT_VERSION}.jar"
     fi
