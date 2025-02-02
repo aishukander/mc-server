@@ -26,7 +26,7 @@ fi
 export PATH=/project/java/jdk${JAVA_VERSION}/bin:$PATH
 
 # Install java
-if [ ! -d "/project/java/${JAVA_VERSION}"]; then
+if [ ! -d "/project/java/${JAVA_VERSION}" ]; then
     echo "start install java ${JAVA_VERSION}"
     LATEST_URL=$(curl -s "https://api.github.com/repos/adoptium/temurin${JAVA_VERSION}-binaries/releases/latest" \
         | grep "browser_download_url" \
