@@ -26,7 +26,7 @@ fi
 export PATH=/project/java/jdk${JAVA_VERSION}/bin:$PATH
 
 # Install java
-if [ ! -d "/project/java/${JAVA_VERSION}" ]; then
+if [ ! -d "/project/java/jdk${JAVA_VERSION}" ]; then
     echo "start install java ${JAVA_VERSION}"
     LATEST_URL=$(curl -s "https://api.github.com/repos/adoptium/temurin${JAVA_VERSION}-binaries/releases/latest" \
         | grep "browser_download_url" \
@@ -35,12 +35,12 @@ if [ ! -d "/project/java/${JAVA_VERSION}" ]; then
         | cut -d '"' -f 4)
     curl -L "${LATEST_URL}" -o jdk${JAVA_VERSION}.tar.gz
     tar -xzf jdk${JAVA_VERSION}.tar.gz
-    rm jdk${JAVA_VERSION}.tar.gz
 
     jdk_dir=$(tar -tf jdk${JAVA_VERSION}.tar.gz | head -1 | cut -f1 -d"/")
     mkdir -p /project/java
     echo "Moving ${jdk_dir} to /project/java"
     mv "${jdk_dir}" /project/java/jdk${JAVA_VERSION}
+    rm jdk${JAVA_VERSION}.tar.gz
 fi
 
 cd /project/server
@@ -56,11 +56,8 @@ fi
 if [ "$Type" = "paper" ]; then
     if [ ! -f "paper-${MINECRAFT_VERSION}.jar" ]; then
         api_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds"
-
         latest_build=$(curl -s "$api_url" | jq '.builds[-1].build')
-
         download_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds/${latest_build}/downloads/paper-${MINECRAFT_VERSION}-${latest_build}.jar"
-
         curl -o "paper-${MINECRAFT_VERSION}.jar" "$download_url"
     fi
 
@@ -76,7 +73,6 @@ if [ "$Type" = "neoforge" ]; then
         version_filter="${MINECRAFT_VERSION#1.}"
         api_url="https://maven.neoforged.net/releases/net/neoforged/neoforge"
         latest_version=$(curl -s "$api_url/maven-metadata.xml" | xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
-
         curl -o "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$latest_version/neoforge-$latest_version-installer.jar"
         java -jar "neoforge-${MINECRAFT_VERSION}.jar"
         rm "neoforge-${MINECRAFT_VERSION}.jar"
