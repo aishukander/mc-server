@@ -73,6 +73,14 @@ fi
 if [ "$Type" = "neoforge" ]; then
     echo "-Xms${Min_Ram} -Xmx${Max_Ram}" > user_jvm_args.txt
 
+    if [ -n "$NEO_VERSION_OVERRIDE" ] && [ ! -d "./libraries/net/neoforged/neoforge/$NEO_VERSION_OVERRIDE" ]; then
+        echo "更改neoforge版本中..."
+        rm -rf libraries logs
+        if [ -f "run.sh" ]; then
+            rm run.sh
+        fi
+    fi
+
     if [ ! -f "run.sh" ]; then
         version_filter="${MINECRAFT_VERSION#1.}"
         api_url="https://maven.neoforged.net/releases/net/neoforged/neoforge"
