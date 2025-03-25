@@ -52,67 +52,66 @@ if [ ! -f "eula.txt" ]; then
     echo "eula=true" >> eula.txt
 fi
 
-# paper
-if [ "$Type" = "paper" ]; then
-    if [ ! -f "paper-${MINECRAFT_VERSION}.jar" ]; then
-        api_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds"
-        latest_build=$(wget -qO- "$api_url" | jq '.builds[-1].build')
-        if [ "$latest_build" = "null" ] || [ -z "$latest_build" ]; then
-            echo "Unsupported versions of Minecraft"
-            exit 0
+case "$Type" in
+    "paper")
+        if [ ! -f "paper-${MINECRAFT_VERSION}.jar" ]; then
+            api_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds"
+            latest_build=$(wget -qO- "$api_url" | jq '.builds[-1].build')
+            if [ "$latest_build" = "null" ] || [ -z "$latest_build" ]; then
+                echo "Unsupported versions of Minecraft"
+                exit 0
+            fi
+            download_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds/${latest_build}/downloads/paper-${MINECRAFT_VERSION}-${latest_build}.jar"
+            wget -O "paper-${MINECRAFT_VERSION}.jar" "$download_url"
         fi
-        download_url="https://api.papermc.io/v2/projects/paper/versions/${MINECRAFT_VERSION}/builds/${latest_build}/downloads/paper-${MINECRAFT_VERSION}-${latest_build}.jar"
-        wget -O "paper-${MINECRAFT_VERSION}.jar" "$download_url"
-    fi
 
-    # Run server
-    java -Xms${Min_Ram} -Xmx${Max_Ram} -jar "paper-${MINECRAFT_VERSION}.jar" nogui
-fi
+        # Run server
+        java -Xms${Min_Ram} -Xmx${Max_Ram} -jar "paper-${MINECRAFT_VERSION}.jar" nogui
+        ;;
+    
+    "neoforge")
+        echo "-Xms${Min_Ram} -Xmx${Max_Ram}" > user_jvm_args.txt
 
-# neoforge
-if [ "$Type" = "neoforge" ]; then
-    echo "-Xms${Min_Ram} -Xmx${Max_Ram}" > user_jvm_args.txt
-
-    if [ -n "$NEO_VERSION_OVERRIDE" ] && [ ! -d "./libraries/net/neoforged/neoforge/$NEO_VERSION_OVERRIDE" ]; then
-        echo "Changing the neoforge version..."
-        rm -rf libraries logs
-        if [ -f "run.sh" ]; then
-            rm run.sh
+        if [ -n "$NEO_VERSION_OVERRIDE" ] && [ ! -d "./libraries/net/neoforged/neoforge/$NEO_VERSION_OVERRIDE" ]; then
+            echo "Changing the neoforge version..."
+            rm -rf libraries logs
+            if [ -f "run.sh" ]; then
+                rm run.sh
+            fi
         fi
-    fi
 
-    if [ ! -f "run.sh" ]; then
-        version_filter="${MINECRAFT_VERSION#1.}"
-        api_url="https://maven.neoforged.net/releases/net/neoforged/neoforge"
-        if [ -n "$NEO_VERSION_OVERRIDE" ]; then
-            neo_version="$NEO_VERSION_OVERRIDE"
-        else
-            neo_version=$(wget -qO- "$api_url/maven-metadata.xml" | \
-                xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
-            if [ -z "$neo_version" ]; then
+        if [ ! -f "run.sh" ]; then
+            version_filter="${MINECRAFT_VERSION#1.}"
+            api_url="https://maven.neoforged.net/releases/net/neoforged/neoforge"
+            if [ -n "$NEO_VERSION_OVERRIDE" ]; then
+                neo_version="$NEO_VERSION_OVERRIDE"
+            else
+                neo_version=$(wget -qO- "$api_url/maven-metadata.xml" | \
+                    xmllint --xpath "string(//metadata/versioning/versions/version[contains(text(),'${version_filter}')][last()])" -)
+                if [ -z "$neo_version" ]; then
+                    echo "Unsupported versions of Minecraft"
+                    exit 0
+                fi
+            fi
+
+            wget -O "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$neo_version/neoforge-$neo_version-installer.jar"
+            java -jar "neoforge-${MINECRAFT_VERSION}.jar"
+            rm "neoforge-${MINECRAFT_VERSION}.jar"
+        fi
+
+        ./run.sh
+        ;;
+    
+    *)
+        jar_name="${Type}-${MINECRAFT_VERSION}.jar"
+        if [ ! -f "$jar_name" ]; then
+            download_url="https://mcutils.com/api/server-jars/${Type}/${MINECRAFT_VERSION}/download"
+            if ! wget -q -O "$jar_name" "$download_url"; then
                 echo "Unsupported versions of Minecraft"
                 exit 0
             fi
         fi
-
-        wget -O "neoforge-${MINECRAFT_VERSION}.jar" "$api_url/$neo_version/neoforge-$neo_version-installer.jar"
-        java -jar "neoforge-${MINECRAFT_VERSION}.jar"
-        rm "neoforge-${MINECRAFT_VERSION}.jar"
-    fi
-
-    ./run.sh
-fi
-
-# mcutils
-if [ "$Type" != "paper" ] && [ "$Type" != "neoforge" ]; then
-    jar_name="${Type}-${MINECRAFT_VERSION}.jar"
-    if [ ! -f "$jar_name" ]; then
-        download_url="https://mcutils.com/api/server-jars/${Type}/${MINECRAFT_VERSION}/download"
-        if ! wget -q -O "$jar_name" "$download_url"; then
-            echo "Unsupported versions of Minecraft"
-            exit 0
-        fi
-    fi
-    # Run server
-    java -Xms${Min_Ram} -Xmx${Max_Ram} -jar "$jar_name" nogui
-fi
+        # Run server
+        java -Xms${Min_Ram} -Xmx${Max_Ram} -jar "$jar_name" nogui
+        ;;
+esac
