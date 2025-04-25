@@ -8,7 +8,8 @@ RUN microdnf update -y && \
     wget \
     jq \
     libxml2 \
-    nmap-ncat && \
+    nmap-ncat \
+    tar && \
     microdnf clean all
 
 WORKDIR /project
