@@ -24,24 +24,19 @@ else
 fi
 
 # Install java
-if [ ! -d "/project/java/jdk${JAVA_VERSION}" ]; then
-    echo "start install java ${JAVA_VERSION}"
-    LATEST_URL=$(wget -qO- "https://api.github.com/repos/adoptium/temurin${JAVA_VERSION}-binaries/releases/latest" \
-        | grep "browser_download_url" \
-        | grep "jdk_x64_linux" \
-        | head -n 1 \
-        | cut -d '"' -f 4)
-    wget -O jdk${JAVA_VERSION}.tar.gz "${LATEST_URL}"
-    tar -xzf jdk${JAVA_VERSION}.tar.gz
+if ! command -v java &> /dev/null; then
+    echo "Installing Java ${JAVA_VERSION} via microdnf"
 
-    jdk_dir=$(tar -tf jdk${JAVA_VERSION}.tar.gz | head -1 | cut -f1 -d"/")
-    mkdir -p /project/java
-    echo "Moving ${jdk_dir} to /project/java"
-    mv "${jdk_dir}" /project/java/jdk${JAVA_VERSION}
-    rm jdk${JAVA_VERSION}.tar.gz
+    case "${JAVA_VERSION}" in
+        8)  pkg="java-1.8.0-openjdk";;
+        16) pkg="java-16-openjdk";;
+        17) pkg="java-17-openjdk";;
+        21) pkg="java-21-openjdk";;
+        *)  echo "Unsupported JAVA_VERSION=${JAVA_VERSION}, default to 1.8"; pkg="java-1.8.0-openjdk-headless";;
+    esac
+
+    microdnf install -y "${pkg}"
 fi
-
-export PATH=/project/java/jdk${JAVA_VERSION}/bin:$PATH
 
 cd /project/server
 
