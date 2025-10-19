@@ -1,3 +1,4 @@
+# docker compose up --build
 services:
   mc-server:
     build: .
@@ -9,11 +10,12 @@ services:
     environment:
       # JAVA_VERSION_OVERRIDE: "<version>"
       # NEO_VERSION_OVERRIDE: "<version>"
-      Type: "neoforge"
+      Type: "paper"
       MINECRAFT_VERSION: "1.21.1"
       Min_Ram: "1G"
       Max_Ram: "4G"
     volumes:
       - ./server:/project/server
+      - ./java:/project/java
     ports:
       - "25565:25565"
