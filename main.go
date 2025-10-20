@@ -27,6 +27,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := os.Chmod(fmt.Sprintf("%s/jdk%s/bin/java", java_path, java_version), 0755); err != nil {
+		fmt.Printf("Failed to set executable permissions on Java: %s\n", err)
+		os.Exit(1)
+	}
+
 	java_bin_path := fmt.Sprintf("%s/jdk%s/bin", java_path, java_version)
 	server_type := os.Getenv("Type")
 	switch server_type {
