@@ -223,6 +223,24 @@ func Create_eula(path string) error {
 	return nil
 }
 
+func Set_java_executable(java_bin_path string) error {
+	entries, err := os.ReadDir(java_bin_path)
+	if err != nil {
+		return fmt.Errorf("failed to read java bin directory: %w", err)
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			filePath := fmt.Sprintf("%s/%s", java_bin_path, entry.Name())
+			if err := os.Chmod(filePath, 0755); err != nil {
+				return fmt.Errorf("failed to set executable permission for %s: %w", filePath, err)
+			}
+		}
+	}
+
+	fmt.Printf("Set executable permissions for Java binaries in %s\n", java_bin_path)
+	return nil
+}
+
 func Handle_paper(server_path string, java_bin_path string) error {
 	minecraft_version := os.Getenv("MINECRAFT_VERSION")
 	jar_name := fmt.Sprintf("paper-%s.jar", minecraft_version)
