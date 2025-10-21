@@ -12,6 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o entrypoint .
 
 # Runtime Stage
 FROM rockylinux/rockylinux:9-minimal
+LABEL org.opencontainers.image.source="https://github.com/aishukander/mc-server"
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=300s \
     CMD nc -z localhost 25565 || exit 1
