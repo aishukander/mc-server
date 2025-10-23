@@ -38,7 +38,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            ${{ github.event_name == 'release' && github.event.release.tag_name || 'latest' }}
+            ${{ github.event_name == 'release' && format('{0},latest', github.event.release.tag_name) || 'latest' }}
 
       - name: Build and push Docker image
         id: build-and-push
