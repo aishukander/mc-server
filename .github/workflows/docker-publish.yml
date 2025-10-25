@@ -54,5 +54,6 @@ jobs:
       - name: Make image public
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_NAME: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         run: |
-          gh api -X PATCH /user/packages/container/${{ env.IMAGE_NAME }}/visibility --field visibility=public
+          gh api -X PATCH /user/packages/container/${{ IMAGE_NAME }}/visibility --field visibility=public
