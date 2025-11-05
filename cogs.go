@@ -299,6 +299,7 @@ func Handle_paper(server_path string, java_bin_path string) error {
 	paper_start := exec.Command("sh", "-c", fmt.Sprintf("export PATH=%s:$PATH && java -Xms%s -Xmx%s -jar %s nogui", java_bin_path, min_ram, max_ram, jar_name))
 	paper_start.Dir = server_path
 	paper_start.Stdout = os.Stdout
+	paper_start.Stdin = os.Stdin
 	paper_start.Stderr = os.Stderr
 	return paper_start.Run()
 }
@@ -395,6 +396,7 @@ func Handle_neoforge(server_path string, java_bin_path string) error {
 	neoforge_start := exec.Command("sh", "-c", fmt.Sprintf("export PATH=%s:$PATH && ./run.sh", java_bin_path))
 	neoforge_start.Dir = server_path
 	neoforge_start.Stdout = os.Stdout
+	neoforge_start.Stdin = os.Stdin
 	neoforge_start.Stderr = os.Stderr
 	return neoforge_start.Run()
 }
@@ -435,6 +437,7 @@ func Handle_other(server_path, server_type string, java_bin_path string) error {
 	other_start := exec.Command("sh", "-c", fmt.Sprintf("export PATH=%s:$PATH && java -Xms%s -Xmx%s -jar %s nogui", java_bin_path, min_ram, max_ram, jar_name))
 	other_start.Dir = server_path
 	other_start.Stdout = os.Stdout
+	other_start.Stdin = os.Stdin
 	other_start.Stderr = os.Stderr
 	return other_start.Run()
 }
