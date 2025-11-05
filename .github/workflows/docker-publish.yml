@@ -12,7 +12,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,15 +38,29 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            ${{ github.event_name == 'release' && format('{0},latest', github.event.release.tag_name) || 'latest' }}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=tag
+            type=ref,event=pr
 
-      - name: Build and push Docker image
-        id: build-and-push
+      - name: Build Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: false
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Push Docker image
+        run: docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Delete untagged versions
+        uses: actions/delete-package-versions@v5
+        with:
+          owner: ${{ github.repository_owner }}
+          package-name: ${{ github.event.repository.name }}
+          package-type: 'container'
+          delete-only-untagged-versions: true
