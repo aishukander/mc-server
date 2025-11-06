@@ -307,9 +307,16 @@ func Handle_paper(server_path string, java_bin_path string) error {
 func Handle_neoforge(server_path string, java_bin_path string) error {
 	min_ram := os.Getenv("Min_Ram")
 	max_ram := os.Getenv("Max_Ram")
-	jvm_args := fmt.Sprintf("-Xms%s -Xmx%s", min_ram, max_ram)
-	if err := os.WriteFile(fmt.Sprintf("%s/user_jvm_args.txt", server_path), []byte(jvm_args), 0644); err != nil {
-		return fmt.Errorf("failed to write user_jvm_args.txt: %w", err)
+	expected_jvm_args := fmt.Sprintf("-Xms%s -Xmx%s", min_ram, max_ram)
+	jvm_args_path := fmt.Sprintf("%s/user_jvm_args.txt", server_path)
+
+	if current_jvm_args, err := os.ReadFile(jvm_args_path); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to read user_jvm_args.txt: %w", err)
+	} else if string(current_jvm_args) != expected_jvm_args {
+		fmt.Println("Updating user_jvm_args.txt with new memory settings.")
+		if err := os.WriteFile(jvm_args_path, []byte(expected_jvm_args), 0644); err != nil {
+			return fmt.Errorf("failed to write user_jvm_args.txt: %w", err)
+		}
 	}
 
 	neo_version_override := os.Getenv("NEO_VERSION_OVERRIDE")
