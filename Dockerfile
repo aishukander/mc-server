@@ -26,6 +26,7 @@ RUN microdnf update -y && \
 WORKDIR /project
 
 COPY --from=builder /build/entrypoint /project/entrypoint
+COPY LICENSE /project/LICENSE
 
 RUN chmod +x /project/entrypoint && \
     mkdir /project/server
