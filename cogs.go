@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -118,7 +119,26 @@ func Get_java_version() (string, error) {
 }
 
 func Install_Java_from_git(version string, path string) error {
-	installPath := fmt.Sprintf("%s/jdk%s", path, version)
+	installPath := fmt.Sprintf("%s/jdk%s-alpine", path, version)
+
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return fmt.Errorf("failed to create Java directory: %w", err)
+	}
+
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("failed to read Java directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() && strings.HasPrefix(entry.Name(), "jdk") && filepath.Join(path, entry.Name()) != installPath {
+			oldInstallPath := filepath.Join(path, entry.Name())
+			fmt.Printf("Removing old Java installation at %s\n", oldInstallPath)
+			if err := os.RemoveAll(oldInstallPath); err != nil {
+				return fmt.Errorf("failed to remove old Java installation %s: %w", oldInstallPath, err)
+			}
+		}
+	}
 
 	info, err := os.Stat(installPath)
 	if err == nil && info.IsDir() {
@@ -152,19 +172,19 @@ func Install_Java_from_git(version string, path string) error {
 
 	var downloadURL string
 	for _, asset := range release.Assets {
-		if strings.Contains(asset.Name, "jdk_x64_linux") && strings.HasSuffix(asset.Name, ".tar.gz") {
+		if strings.Contains(asset.Name, "jdk_x64_alpine-linux") && strings.HasSuffix(asset.Name, ".tar.gz") {
 			downloadURL = asset.BrowserDownloadURL
 			break
 		}
 	}
 
 	if downloadURL == "" {
-		return fmt.Errorf("could not find a download URL for Java %s for x64 Linux", version)
+		return fmt.Errorf("could not find an Alpine download URL for Java %s", version)
 	}
 
 	fmt.Printf("Downloading from %s\n", downloadURL)
 
-	archiveName := fmt.Sprintf("jdk%s.tar.gz", version)
+	archiveName := fmt.Sprintf("jdk%s-alpine.tar.gz", version)
 	out, err := os.Create(archiveName)
 	if err != nil {
 		return fmt.Errorf("failed to create archive file: %w", err)

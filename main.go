@@ -19,7 +19,7 @@ func main() {
 		os.Exit(1)
 	}
 	java_path := fmt.Sprintf("%s/java", cwd)
-	java_bin_path := fmt.Sprintf("%s/jdk%s/bin", java_path, java_version)
+	java_bin_path := fmt.Sprintf("%s/jdk%s-alpine/bin", java_path, java_version)
 
 	if err := Install_Java_from_git(java_version, java_path); err != nil {
 		fmt.Printf("GitHub installation failed: %s\n", err)
