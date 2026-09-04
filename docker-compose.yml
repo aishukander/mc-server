@@ -14,6 +14,7 @@ services:
       MINECRAFT_VERSION: "26.2"
       Min_Ram: "1G"
       Max_Ram: "4G"
+      user: "1000:1000"
       #JAVA_OPTS: ""
     volumes:
       - ./server:/project/server
