@@ -5,15 +5,16 @@ services:
     container_name: mc-server
     tty: true
     stdin_open: true
-    image: aishukander/mc-server
+    image: ghcr.io/aishukander/mc-server:git
     restart: on-failure
     environment:
       # JAVA_VERSION_OVERRIDE: "<version>"
       # NEO_VERSION_OVERRIDE: "<version>"
       Type: "paper"
-      MINECRAFT_VERSION: "1.21.1"
+      MINECRAFT_VERSION: "26.2"
       Min_Ram: "1G"
       Max_Ram: "4G"
+      #JAVA_OPTS: ""
     volumes:
       - ./server:/project/server
       - ./java:/project/java

@@ -17,7 +17,7 @@ import (
 const paperFillBaseURL = "https://fill.papermc.io/v3/projects/paper"
 const minecraftVersionManifestURL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
-var paperUserAgent = fmt.Sprintf("mc-server/%s (https://docs.papermc.io/)", os.Getenv("VERSION"))
+var paperUserAgent = fmt.Sprintf("mc-server/%s (https://docs.papermc.io/)", os.Getenv("APP_VERSION"))
 
 func Version_greater(v1, v2 string) bool {
 	parts1 := strings.Split(v1, ".")
@@ -390,9 +390,14 @@ func Handle_paper(server_path string, java_bin_path string) error {
 		}
 	}
 
-	min_ram := os.Getenv("Min_Ram")
-	max_ram := os.Getenv("Max_Ram")
-	paper_start := exec.Command("sh", "-c", fmt.Sprintf("export PATH=%s:$PATH && java -Xms%s -Xmx%s -jar %s nogui", java_bin_path, min_ram, max_ram, jar_name))
+	args := []string{
+		"-Xms" + os.Getenv("Min_Ram"),
+		"-Xmx" + os.Getenv("Max_Ram"),
+	}
+	args = append(args, strings.Fields(os.Getenv("JAVA_OPTS"))...)
+	args = append(args, "-jar", jar_name, "nogui")
+
+	paper_start := exec.Command(fmt.Sprintf("%s/java", java_bin_path), args...)
 	paper_start.Dir = server_path
 	paper_start.Stdout = os.Stdout
 	paper_start.Stdin = os.Stdin
@@ -535,9 +540,14 @@ func Handle_other(server_path, server_type string, java_bin_path string) error {
 		}
 	}
 
-	min_ram := os.Getenv("Min_Ram")
-	max_ram := os.Getenv("Max_Ram")
-	other_start := exec.Command("sh", "-c", fmt.Sprintf("export PATH=%s:$PATH && java -Xms%s -Xmx%s -jar %s nogui", java_bin_path, min_ram, max_ram, jar_name))
+	args := []string{
+		"-Xms" + os.Getenv("Min_Ram"),
+		"-Xmx" + os.Getenv("Max_Ram"),
+	}
+	args = append(args, strings.Fields(os.Getenv("JAVA_OPTS"))...)
+	args = append(args, "-jar", jar_name, "nogui")
+
+	other_start := exec.Command(fmt.Sprintf("%s/java", java_bin_path), args...)
 	other_start.Dir = server_path
 	other_start.Stdout = os.Stdout
 	other_start.Stdin = os.Stdin
