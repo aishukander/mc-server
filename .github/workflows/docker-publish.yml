@@ -39,7 +39,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
-            type=raw,value=git,enable=${{ github.event_name == 'push' }}
+            type=raw,value=git-alpine,enable=${{ github.event_name == 'push' }}
             type=ref,event=tag
             type=ref,event=pr
 
