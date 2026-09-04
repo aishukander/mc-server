@@ -184,7 +184,7 @@ func Install_Java_from_git(version string, path string) error {
 
 	fmt.Printf("Downloading from %s\n", downloadURL)
 
-	archiveName := fmt.Sprintf("jdk%s-alpine.tar.gz", version)
+	archiveName := filepath.Join(path, fmt.Sprintf("jdk%s-alpine.tar.gz", version))
 	out, err := os.Create(archiveName)
 	if err != nil {
 		return fmt.Errorf("failed to create archive file: %w", err)
@@ -229,7 +229,7 @@ func Install_Java_from_git(version string, path string) error {
 			rootDir = strings.Split(header.Name, "/")[0]
 		}
 
-		target := header.Name
+		target := filepath.Join(path, header.Name)
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if err := os.MkdirAll(target, 0755); err != nil {
@@ -257,7 +257,7 @@ func Install_Java_from_git(version string, path string) error {
 		return fmt.Errorf("failed to create %s directory: %w", path, err)
 	}
 
-	cp_cmd := exec.Command("cp", "-r", rootDir, installPath)
+	cp_cmd := exec.Command("cp", "-r", filepath.Join(path, rootDir), installPath)
 	if err := cp_cmd.Run(); err != nil {
 		return fmt.Errorf("failed to copy extracted directory: %w", err)
 	}
