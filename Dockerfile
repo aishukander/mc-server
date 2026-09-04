@@ -1,5 +1,6 @@
 # Build Stage
 FROM golang:1.25-alpine AS builder
+ARG APP_VERSION=development
 
 WORKDIR /build
 
@@ -12,7 +13,11 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o entrypoin
 
 # Runtime Stage
 FROM rockylinux/rockylinux:9-minimal
+ARG APP_VERSION
 LABEL org.opencontainers.image.source="https://github.com/aishukander/mc-server"
+
+ENV \
+    APP_VERSION=${APP_VERSION}
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=300s \
     CMD nc -z localhost 25565 || exit 1

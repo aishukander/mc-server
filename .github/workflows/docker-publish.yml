@@ -48,9 +48,9 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "release" ]; then
             VERSION=${GITHUB_REF_NAME#Releases}
-            echo "Bot_version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "APP_VERSION=${VERSION}" >> $GITHUB_OUTPUT
           else
-            echo "Bot_version=git" >> $GITHUB_OUTPUT
+            echo "APP_VERSION=git" >> $GITHUB_OUTPUT
           fi
 
       - name: Build Docker image
@@ -62,7 +62,7 @@ jobs:
           load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: Bot_version=${{ steps.build_args.outputs.Bot_version }}
+          build-args: APP_VERSION=${{ steps.build_args.outputs.APP_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
