@@ -13,7 +13,11 @@ func main() {
 	}
 
 	server_path := fmt.Sprintf("%s/server", cwd)
-	java_version := Get_java_version()
+	java_version, err := Get_java_version()
+	if err != nil {
+		fmt.Printf("Failed to determine Java version: %s\n", err)
+		os.Exit(1)
+	}
 	java_path := fmt.Sprintf("%s/java", cwd)
 	java_bin_path := fmt.Sprintf("%s/jdk%s/bin", java_path, java_version)
 

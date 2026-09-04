@@ -14,6 +14,11 @@ import (
 	"time"
 )
 
+const paperFillBaseURL = "https://fill.papermc.io/v3/projects/paper"
+const minecraftVersionManifestURL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
+
+var paperUserAgent = fmt.Sprintf("mc-server/%s (https://docs.papermc.io/)", os.Getenv("VERSION"))
+
 func Version_greater(v1, v2 string) bool {
 	parts1 := strings.Split(v1, ".")
 	parts2 := strings.Split(v2, ".")
@@ -40,26 +45,76 @@ func Version_greater(v1, v2 string) bool {
 	return true
 }
 
-func Get_java_version() string {
+func Get_java_version() (string, error) {
 	if overrideVersion := os.Getenv("JAVA_VERSION_OVERRIDE"); overrideVersion != "" {
-		return overrideVersion
+		return overrideVersion, nil
+	}
+
+	getJSON := func(url string, target any) error {
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return err
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("Mojang API returned non-200 status: %s", resp.Status)
+		}
+
+		return json.NewDecoder(resp.Body).Decode(target)
 	}
 
 	minecraftVersion := os.Getenv("MINECRAFT_VERSION")
-	if minecraftVersion == "" {
-		return "8"
+	var manifest struct {
+		Latest struct {
+			Release string `json:"release"`
+		} `json:"latest"`
+		Versions []struct {
+			ID  string `json:"id"`
+			URL string `json:"url"`
+		} `json:"versions"`
+	}
+	if err := getJSON(minecraftVersionManifestURL, &manifest); err != nil {
+		return "", fmt.Errorf("failed to fetch Minecraft version manifest: %w", err)
 	}
 
-	switch {
-	case Version_greater(minecraftVersion, "1.20.5"):
-		return "21"
-	case Version_greater(minecraftVersion, "1.18"):
-		return "17"
-	case Version_greater(minecraftVersion, "1.17"):
-		return "16"
-	default:
-		return "8"
+	if minecraftVersion == "" {
+		minecraftVersion = manifest.Latest.Release
+		if minecraftVersion == "" {
+			return "", fmt.Errorf("Mojang version manifest did not include latest release")
+		}
 	}
+
+	var versionURL string
+	for _, version := range manifest.Versions {
+		if version.ID == minecraftVersion {
+			versionURL = version.URL
+			break
+		}
+	}
+	if versionURL == "" {
+		return "", fmt.Errorf("Minecraft version %s was not found in Mojang manifest", minecraftVersion)
+	}
+
+	var versionDetails struct {
+		JavaVersion struct {
+			MajorVersion int `json:"majorVersion"`
+		} `json:"javaVersion"`
+	}
+	if err := getJSON(versionURL, &versionDetails); err != nil {
+		return "", fmt.Errorf("failed to fetch Minecraft version %s details: %w", minecraftVersion, err)
+	}
+
+	if versionDetails.JavaVersion.MajorVersion == 0 {
+		return "8", nil
+	}
+
+	return strconv.Itoa(versionDetails.JavaVersion.MajorVersion), nil
 }
 
 func Install_Java_from_git(version string, path string) error {
@@ -243,34 +298,69 @@ func Set_java_executable(java_bin_path string) error {
 
 func Handle_paper(server_path string, java_bin_path string) error {
 	minecraft_version := os.Getenv("MINECRAFT_VERSION")
-	jar_name := fmt.Sprintf("paper-%s.jar", minecraft_version)
+
+	paperGetJSON := func(url string, target any) error {
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("User-Agent", paperUserAgent)
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("paper API returned non-200 status: %s", resp.Status)
+		}
+
+		return json.NewDecoder(resp.Body).Decode(target)
+	}
+
+	if minecraft_version == "" {
+		var project struct {
+			Versions []struct {
+				Version struct {
+					ID string `json:"id"`
+				} `json:"version"`
+			} `json:"versions"`
+		}
+		if err := paperGetJSON(paperFillBaseURL+"/versions", &project); err != nil {
+			return fmt.Errorf("failed to fetch latest Paper version: %w", err)
+		}
+		if len(project.Versions) == 0 {
+			return fmt.Errorf("paper versions response was empty")
+		}
+		minecraft_version = project.Versions[0].Version.ID
+		fmt.Printf("MINECRAFT_VERSION is not set, using latest Paper version %s\n", minecraft_version)
+	}
+
+	jar_name := "paper.jar"
 	jar_path := fmt.Sprintf("%s/%s", server_path, jar_name)
 
 	if _, err := os.Stat(jar_path); os.IsNotExist(err) {
 		fmt.Printf("%s not found, downloading...\n", jar_name)
-		api_url := fmt.Sprintf("https://api.papermc.io/v2/projects/paper/versions/%s/builds", minecraft_version)
+		buildsURL := fmt.Sprintf("%s/versions/%s/builds?channel=STABLE", paperFillBaseURL, minecraft_version)
 
-		resp, err := http.Get(api_url)
-		if err != nil {
+		var builds []struct {
+			Downloads map[string]struct {
+				URL string `json:"url"`
+			} `json:"downloads"`
+		}
+		if err := paperGetJSON(buildsURL, &builds); err != nil {
 			return fmt.Errorf("failed to fetch builds from PaperMC API: %w", err)
 		}
-		defer resp.Body.Close()
 
-		var builds struct {
-			Builds []struct {
-				Build int `json:"build"`
-			} `json:"builds"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&builds); err != nil {
-			return fmt.Errorf("failed to parse JSON from PaperMC API: %w", err)
-		}
-
-		if len(builds.Builds) == 0 {
+		if len(builds) == 0 {
 			return fmt.Errorf("unsupported version of Minecraft: %s", minecraft_version)
 		}
-		latest_build := builds.Builds[len(builds.Builds)-1].Build
 
-		download_url := fmt.Sprintf("https://api.papermc.io/v2/projects/paper/versions/%s/builds/%d/downloads/paper-%s-%d.jar", minecraft_version, latest_build, minecraft_version, latest_build)
+		downloadURL := builds[0].Downloads["server:default"].URL
+		if downloadURL == "" {
+			return fmt.Errorf("paper build response did not include a server download URL for %s", minecraft_version)
+		}
 
 		out, err := os.Create(jar_path)
 		if err != nil {
@@ -278,7 +368,13 @@ func Handle_paper(server_path string, java_bin_path string) error {
 		}
 		defer out.Close()
 
-		downloadResp, err := http.Get(download_url)
+		request, err := http.NewRequest(http.MethodGet, downloadURL, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create paper download request: %w", err)
+		}
+		request.Header.Set("User-Agent", paperUserAgent)
+
+		downloadResp, err := http.DefaultClient.Do(request)
 		if err != nil {
 			return fmt.Errorf("failed to download paper jar: %w", err)
 		}
