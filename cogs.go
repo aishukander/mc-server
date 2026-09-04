@@ -257,12 +257,8 @@ func Install_Java_from_git(version string, path string) error {
 		return fmt.Errorf("failed to create %s directory: %w", path, err)
 	}
 
-	cp_cmd := exec.Command("cp", "-r", filepath.Join(path, rootDir), installPath)
-	if err := cp_cmd.Run(); err != nil {
-		return fmt.Errorf("failed to copy extracted directory: %w", err)
-	}
-	if err := os.RemoveAll(filepath.Join(path, rootDir)); err != nil {
-		return fmt.Errorf("failed to remove original extracted directory: %w", err)
+	if err := os.Rename(filepath.Join(path, rootDir), installPath); err != nil {
+		return fmt.Errorf("failed to move extracted directory: %w", err)
 	}
 
 	if err := os.Remove(archiveName); err != nil {
