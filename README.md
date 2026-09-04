@@ -24,7 +24,7 @@ services:
     container_name: mc-server
     tty: true
     stdin_open: true
-    image: aishukander/mc-server
+    image: ghcr.io/aishukander/mc-server:git
     restart: on-failure
     environment:
       # JAVA_VERSION_OVERRIDE: "<version>"
@@ -33,6 +33,8 @@ services:
       MINECRAFT_VERSION: "<minecraft_version>"
       Min_Ram: "<min_ram>"
       Max_Ram: "<max_ram>"
+      #JAVA_OPTS: ""
+      user: "1000:1000"
     volumes:
       - <host_server_path>:/project/server
       - <host_java_path>:/project/java
