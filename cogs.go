@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -119,6 +120,25 @@ func Get_java_version() (string, error) {
 
 func Install_Java_from_git(version string, path string) error {
 	installPath := fmt.Sprintf("%s/jdk%s", path, version)
+
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return fmt.Errorf("failed to create Java directory: %w", err)
+	}
+
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("failed to read Java directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() && strings.HasPrefix(entry.Name(), "jdk") && filepath.Join(path, entry.Name()) != installPath {
+			oldInstallPath := filepath.Join(path, entry.Name())
+			fmt.Printf("Removing old Java installation at %s\n", oldInstallPath)
+			if err := os.RemoveAll(oldInstallPath); err != nil {
+				return fmt.Errorf("failed to remove old Java installation %s: %w", oldInstallPath, err)
+			}
+		}
+	}
 
 	info, err := os.Stat(installPath)
 	if err == nil && info.IsDir() {
