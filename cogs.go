@@ -406,9 +406,12 @@ func Handle_paper(server_path string, java_bin_path string) error {
 }
 
 func Handle_neoforge(server_path string, java_bin_path string) error {
-	min_ram := os.Getenv("Min_Ram")
-	max_ram := os.Getenv("Max_Ram")
-	expected_jvm_args := fmt.Sprintf("-Xms%s -Xmx%s", min_ram, max_ram)
+	args := []string{
+		"-Xms" + os.Getenv("Min_Ram"),
+		"-Xmx" + os.Getenv("Max_Ram"),
+	}
+	args = append(args, strings.Fields(os.Getenv("JAVA_OPTS"))...)
+	expected_jvm_args := strings.Join(args, "\n")
 	jvm_args_path := fmt.Sprintf("%s/user_jvm_args.txt", server_path)
 
 	if current_jvm_args, err := os.ReadFile(jvm_args_path); err != nil && !os.IsNotExist(err) {
