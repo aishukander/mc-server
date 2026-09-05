@@ -5,7 +5,7 @@ on:
     types: [published]
   push:
     branches:
-      - main
+      - alpine
 
 env:
   REGISTRY: ghcr.io
@@ -47,10 +47,10 @@ jobs:
         id: build_args
         run: |
           if [ "${{ github.event_name }}" == "release" ]; then
-            VERSION=${GITHUB_REF_NAME#Releases}
+            VERSION="${GITHUB_REF_NAME#Releases}-alpine"
             echo "APP_VERSION=${VERSION}" >> $GITHUB_OUTPUT
           else
-            echo "APP_VERSION=git" >> $GITHUB_OUTPUT
+            echo "APP_VERSION=git-alpine" >> $GITHUB_OUTPUT
           fi
 
       - name: Build Docker image
