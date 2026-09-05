@@ -26,6 +26,7 @@ services:
     stdin_open: true
     image: ghcr.io/aishukander/mc-server:git
     restart: on-failure
+    user: "1000:1000"
     environment:
       # JAVA_VERSION_OVERRIDE: "<version>"
       # NEO_VERSION_OVERRIDE: "<version>"
@@ -34,7 +35,6 @@ services:
       Min_Ram: "<min_ram>"
       Max_Ram: "<max_ram>"
       #JAVA_OPTS: ""
-      user: "1000:1000"
     volumes:
       - <host_server_path>:/project/server
       - <host_java_path>:/project/java
